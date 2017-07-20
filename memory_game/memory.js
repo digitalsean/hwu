@@ -25,14 +25,14 @@ Tile.prototype.drawFaceDown = function() {
     ctx.rect(this.x, this.y, this.width, this.height, 10);
     ctx.drawImage(img0, this.x, this.y, this.width, this.height);
     ctx.stroke();
-    this.isFaceUp = false;
+    this.isFaceUp = true;
 };
 
 Tile.prototype.drawFaceUp = function() {
     ctx.rect(this.x, this.y, this.width, this.height, 10);
     ctx.drawImage(this.face, this.x, this.y, this.width, this.height);
     ctx.stroke();
-    this.isFaceUp = true;
+    this.isFaceUp = false;
 };
 
 Tile.prototype.isUnderMouse = function(x, y) {
@@ -110,7 +110,7 @@ for (var i = 0; i < NUM_COLS; i++) {
 
 // Draw tiles face down
 for (var i = 0; i < tiles.length; i++) {
-    tiles[i].drawFaceDown();
+    tiles[i].drawFaceUp();
 }
     
 document.body.addEventListener('click', readPos, false);
@@ -140,10 +140,10 @@ var matchedTiles = [];
 mouseClicked = function() {
     if (flippedTiles.length === 0) {
         for (var i = 0; i < tiles.length; i++) {
-            tiles[i].drawFaceDown();
+            tiles[i].drawFaceUp();
         }
         for (var i = 0; i < matchedTiles.length; i++) {
-            matchedTiles[i].drawFaceUp();
+            matchedTiles[i].drawFaceDown();
         }
 
     }
@@ -154,7 +154,7 @@ mouseClicked = function() {
 
             if (flippedTiles.length < 2 && !tiles[i].isFaceUp) {
             	document.getElementById("p3").innerHTML = ''
-                tiles[i].drawFaceUp();
+                tiles[i].drawFaceDown();
                 flippedTiles.push(tiles[i]);
                 if (flippedTiles.length === 2) {
                     numTries++;
@@ -167,10 +167,20 @@ mouseClicked = function() {
                         matchedTiles.push(flippedTiles[1])
 	                    document.getElementById("p2").innerHTML = str2.concat(numCorrect.toString())
 						document.getElementById("p3").innerHTML = msg[flippedTiles[0].name]
-                    } 
+                    }
                     flippedTiles = []
                 }
             } 
         }
     }
+    if (flippedTiles.length === 0) {
+        for (var i = 0; i < tiles.length; i++) {
+            tiles[i].drawFaceUp();
+        }
+        for (var i = 0; i < matchedTiles.length; i++) {
+            matchedTiles[i].drawFaceDown();
+        }
+
+    }
+
 };
