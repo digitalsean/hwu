@@ -29,6 +29,7 @@ var Tile = function(x, y, face, name) {
     this.name = name;
     this.width = W;
     this.height = H;
+    this.card_id = null;
     this.timer = null;
     this.element = document.createElement("div"); 
 };
@@ -37,12 +38,14 @@ Tile.prototype.setImage = function(image) {
   this.element.style.backgroundImage = 'url("'+image+'")';
 }
 
-Tile.prototype.createInit = function() {
+Tile.prototype.createInit = function(card_id) {
     this.element.className = 'card';
     this.setImage(img0);
+    this.card_id=card_id;
     this.element.style.left = this.x;
     this.element.style.top = this.y;
     this.element.dataset.name=this.name;
+    this.element.dataset.card_id=this.card_id;
     this.element.draggable = true;
     gameDiv.appendChild(this.element);
     this.isFaceDown = true;
@@ -187,8 +190,8 @@ var numTries = 0;
 var numCorrect = 0;
 var matchedTiles = [];
 
-mouseClicked = function() {
-    console.log('clicked');
+
+function redrawTiles() {
     if (flippedTiles.length === 0) {
         for (var i = 0; i < tiles.length; i++) {
             tiles[i].drawFaceDown();
@@ -197,53 +200,63 @@ mouseClicked = function() {
             matchedTiles[i].drawFaceUp();
         } 
 
+    }
+}
+
+function flipTile(tile) {
+
+    if (matchedTiles.includes(tile) ) {
+      console.log('already found');
+      document.getElementById("p3").innerHTML = msg[tile.name % 100];
     } 
 
+
+
+    if (flippedTiles.length < 2 && tile.isFaceDown) {
+        document.getElementById("p3").innerHTML = ''
+        tile.drawFaceUp();
+        flippedTiles.push(tile);
+        if (flippedTiles.length === 2) {
+            tile.moveTo('flipped-right');
+            numTries++;
+            document.getElementById("p1").innerHTML = str1.concat(numTries.toString())
+            if (flippedTiles[0].name % 100  === flippedTiles[1].name % 100) {
+                // success - matching pair
+                numCorrect++;
+                flippedTiles[0].isMatch = true;
+                flippedTiles[1].isMatch = true;
+                matchedTiles.push(flippedTiles[0])
+                matchedTiles.push(flippedTiles[1])
+                document.getElementById("p2").innerHTML = str2.concat(numCorrect.toString())
+                document.getElementById("p3").innerHTML = 'Correct! ' + msg[flippedTiles[0].name % 100]
+            } else {
+              // not a matching pair
+                console.log('not matching pair');
+                for (var j = 0; j < flippedTiles.length; j++) {
+                      console.log('putting back '+j);
+                       flippedTiles[j].drawFaceDownDelay();
+                }
+                flippedTiles=[];
+
+            }
+            console.log('resetting flippedTiles');
+            flippedTiles = [];
+        } else {
+            tile.moveTo('flipped-left');
+        }
+    } 
+}
+
+mouseClicked = function() {
+    console.log('clicked');
+    redrawTiles();
     
     for (var i = 0; i < tiles.length; i++) {
         if (tiles[i].isUnderMouse(mouseX, mouseY)) {
-            if (matchedTiles.includes(tiles[i]) ) {
-              console.log('already found');
-              document.getElementById("p3").innerHTML = msg[tiles[i].name % 100];
-            } 
-
-
-
-            if (flippedTiles.length < 2 && tiles[i].isFaceDown) {
-            	document.getElementById("p3").innerHTML = ''
-                tiles[i].drawFaceUp();
-                flippedTiles.push(tiles[i]);
-                if (flippedTiles.length === 2) {
-                    tiles[i].moveTo('flipped-right');
-                    numTries++;
-                    document.getElementById("p1").innerHTML = str1.concat(numTries.toString())
-                    if (flippedTiles[0].name % 100  === flippedTiles[1].name % 100) {
-                        // success - matching pair
-                    	numCorrect++;
-                        flippedTiles[0].isMatch = true;
-                        flippedTiles[1].isMatch = true;
-                        matchedTiles.push(flippedTiles[0])
-                        matchedTiles.push(flippedTiles[1])
-	                    document.getElementById("p2").innerHTML = str2.concat(numCorrect.toString())
-						document.getElementById("p3").innerHTML = 'Correct! ' + msg[flippedTiles[0].name % 100]
-                    } else {
-                      // not a matching pair
-                        console.log('not matching pair');
-                        for (var j = 0; j < flippedTiles.length; j++) {
-                              console.log('putting back '+j);
-                               flippedTiles[j].drawFaceDownDelay();
-                        }
-                        flippedTiles=[];
-
-                    }
-                    console.log('resetting flippedTiles');
-                    flippedTiles = [];
-                } else {
-                    tiles[i].moveTo('flipped-left');
-                }
-            } 
+            flipTile(tiles[i]);
         }
     }
+
    /* if (flippedTiles.length === 0) {
 
        for (var i = 0; i < matchedTiles.length; i++) {
@@ -258,7 +271,9 @@ mouseClicked = function() {
 //
 window.onload = function() {
   for (var i = 0; i < tiles.length; i++) {
-    tiles[i].createInit();
+    tiles[i].createInit(i);
   }
 }
+
+
 
