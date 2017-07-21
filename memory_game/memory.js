@@ -8,6 +8,15 @@ var NUM_COLS = 4;
 var NUM_ROWS = 3;
 var W = 80;
 var H = 100;
+
+var X_PADDING = 10;
+var Y_PADDING = 40;
+
+var X_GUTTER = 8;
+var Y_GUTTER = 8;
+var DELAY_TIME  = 2000;
+
+
 var index = -1;
 var str1 = 'Number of trials: '
 var str2 = 'Number of correct guesses: '
@@ -19,20 +28,33 @@ var Tile = function(x, y, face, name) {
     this.name = name;
     this.width = W;
     this.height = H;
+    this.timer = null;
 };
 
 Tile.prototype.drawFaceDown = function() {
+    console.log('called face down for '+this.x+', '+this.y);
     ctx.rect(this.x, this.y, this.width, this.height, 10);
     ctx.drawImage(img0, this.x, this.y, this.width, this.height);
     ctx.stroke();
-    this.isFaceUp = true;
+    this.isFaceDown = true;
 };
 
+Tile.prototype.drawFaceDownDelay = function() {
+    this.timer && clearTimeout(this.timer);
+    this.isFaceDown = true;
+    this.timer = setTimeout(function() { this.drawFaceDown(); }.bind(this), DELAY_TIME );
+    //this.timer = setTimeout(function(thisObj) { thisObj.drawFaceDown(); }, DELAY_TIME, this);
+    console.log('setting timeout for '+this.name+' '+this.timer);
+};
+
+
 Tile.prototype.drawFaceUp = function() {
+    console.log('called face up for '+this.x+', '+this.y);
+    this.timer && clearTimeout(this.timer);
     ctx.rect(this.x, this.y, this.width, this.height, 10);
     ctx.drawImage(this.face, this.x, this.y, this.width, this.height);
     ctx.stroke();
-    this.isFaceUp = false;
+    this.isFaceDown = false;
 };
 
 Tile.prototype.isUnderMouse = function(x, y) {
@@ -103,14 +125,14 @@ var tiles = [];
 var k = 0;
 for (var i = 0; i < NUM_COLS; i++) {
     for (var j = 0; j < NUM_ROWS; j++) {
-        tiles.push(new Tile(i * (W+8) + 10, j * (H+8) + 40, faces[posArray[k]], phys[posArray[k]]));
+        tiles.push(new Tile(i * (W+X_GUTTER) + X_PADDING, j * (H+Y_GUTTER) + Y_PADDING, faces[posArray[k]], phys[posArray[k]]));
         k ++;
     }
 }
 
 // Draw tiles face down
 for (var i = 0; i < tiles.length; i++) {
-    tiles[i].drawFaceUp();
+    tiles[i].drawFaceDown();
 }
     
 document.body.addEventListener('click', readPos, false);
@@ -138,28 +160,30 @@ var numCorrect = 0;
 var matchedTiles = [];
 
 mouseClicked = function() {
+    console.log('clicked');
     if (flippedTiles.length === 0) {
         for (var i = 0; i < tiles.length; i++) {
-            tiles[i].drawFaceUp();
+            tiles[i].drawFaceDown();
         }
         for (var i = 0; i < matchedTiles.length; i++) {
-            matchedTiles[i].drawFaceDown();
-        }
+            matchedTiles[i].drawFaceUp();
+        } 
 
-    }
+    } 
 
     
     for (var i = 0; i < tiles.length; i++) {
         if (tiles[i].isUnderMouse(mouseX, mouseY)) {
 
-            if (flippedTiles.length < 2 && !tiles[i].isFaceUp) {
+            if (flippedTiles.length < 2 && tiles[i].isFaceDown) {
             	document.getElementById("p3").innerHTML = ''
-                tiles[i].drawFaceDown();
+                tiles[i].drawFaceUp();
                 flippedTiles.push(tiles[i]);
                 if (flippedTiles.length === 2) {
                     numTries++;
                     document.getElementById("p1").innerHTML = str1.concat(numTries.toString())
                     if (flippedTiles[0].name === flippedTiles[1].name) {
+                        // success - matching pair
                     	numCorrect++;
                         flippedTiles[0].isMatch = true;
                         flippedTiles[1].isMatch = true;
@@ -167,20 +191,36 @@ mouseClicked = function() {
                         matchedTiles.push(flippedTiles[1])
 	                    document.getElementById("p2").innerHTML = str2.concat(numCorrect.toString())
 						document.getElementById("p3").innerHTML = msg[flippedTiles[0].name]
+                    } else {
+                      // not a matching pair
+                        console.log('not matching pair');
+                        for (var j = 0; j < flippedTiles.length; j++) {
+                              console.log('putting back '+j);
+                               flippedTiles[j].drawFaceDownDelay();
+                        }
+                        flippedTiles=[];
+
                     }
-                    flippedTiles = []
+                    console.log('resetting flippedTiles');
+                    flippedTiles = [];
                 }
             } 
         }
     }
-    if (flippedTiles.length === 0) {
-        for (var i = 0; i < tiles.length; i++) {
-            tiles[i].drawFaceUp();
-        }
-        for (var i = 0; i < matchedTiles.length; i++) {
-            matchedTiles[i].drawFaceDown();
-        }
+   /* if (flippedTiles.length === 0) {
 
-    }
+       for (var i = 0; i < matchedTiles.length; i++) {
+           matchedTiles[i].drawFaceUp();
+       }
+
+    } */
 
 };
+
+// initialise the game on page loaded
+//
+window.onload = function() {
+  for (var i = 0; i < tiles.length; i++) {
+    tiles[i].drawFaceDown();
+  }
+}
