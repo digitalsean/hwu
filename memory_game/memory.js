@@ -1,8 +1,9 @@
 
-var c=document.getElementById("myCanvas");
+var gameDiv=document.getElementById("gameCards");
 var eMsg = document.getElementById("p3")
+var ctx = null;
 
-var ctx=c.getContext("2d");
+//var ctx=c.getContext("2d");
 var tiles = [];
 var NUM_COLS = 4;
 var NUM_ROWS = 3;
@@ -10,7 +11,7 @@ var W = 80;
 var H = 100;
 
 var X_PADDING = 10;
-var Y_PADDING = 40;
+var Y_PADDING = 10;
 
 var X_GUTTER = 8;
 var Y_GUTTER = 8;
@@ -29,13 +30,28 @@ var Tile = function(x, y, face, name) {
     this.width = W;
     this.height = H;
     this.timer = null;
+    this.element = document.createElement("div"); 
+};
+
+Tile.prototype.setImage = function(image) {
+  this.element.style.backgroundImage = 'url("'+image+'")';
+}
+
+Tile.prototype.createInit = function() {
+    this.element.className = 'card';
+    this.setImage(img0);
+    this.element.style.left = this.x;
+    this.element.style.top = this.y;
+    this.element.dataset.name=this.name;
+    this.element.draggable = true;
+    gameDiv.appendChild(this.element);
+    this.isFaceDown = true;
 };
 
 Tile.prototype.drawFaceDown = function() {
+    this.moveTo();
     console.log('called face down for '+this.x+', '+this.y);
-    ctx.rect(this.x, this.y, this.width, this.height, 10);
-    ctx.drawImage(img0, this.x, this.y, this.width, this.height);
-    ctx.stroke();
+    this.setImage(img0);
     this.isFaceDown = true;
 };
 
@@ -48,12 +64,24 @@ Tile.prototype.drawFaceDownDelay = function() {
 };
 
 
+Tile.prototype.moveTo = function(pos) {
+  if (this.element.classList.contains('flipped-left')) {
+    this.element.classList.remove('flipped-left');
+  }
+  if (this.element.classList.contains('flipped-right')) {
+    this.element.classList.remove('flipped-right');
+  }
+
+
+  if (pos && !this.element.classList.contains(pos)) {
+    this.element.classList.add(pos);
+  }
+}
+
 Tile.prototype.drawFaceUp = function() {
     console.log('called face up for '+this.x+', '+this.y);
     this.timer && clearTimeout(this.timer);
-    ctx.rect(this.x, this.y, this.width, this.height, 10);
-    ctx.drawImage(this.face, this.x, this.y, this.width, this.height);
-    ctx.stroke();
+    this.setImage(this.face);
     this.isFaceDown = false;
 };
 
@@ -78,21 +106,21 @@ function shuffleArray(array) {
     return array;
 }
 
-img0 = createImage('hwu.jpg', 'hwu');
+img0 = 'hwu.jpg';
 
 var faces = new Array();
-faces[0] = createImage("images/maxwell.png", 0);
-faces[1] = createImage("images/curie.png", 1);
-faces[2] = createImage("images/bardeen.png", 2);
-faces[3] = createImage("images/einstein.png", 3);
-faces[4] = createImage("images/franklin.png", 4);
-faces[5] = createImage("images/feynmann.png", 5);
-faces[6] = createImage("images/cell_phone.png", 0);
-faces[7] = createImage("images/smoke_detector.png", 1);
-faces[8] = createImage("images/transistor.png", 2);
-faces[9] = createImage("images/gps.png", 3);
-faces[10] = createImage("images/dna.png", 4);
-faces[11] = createImage("images/nano.png", 5);
+faces[0] = "images/maxwell.png";
+faces[1] = "images/curie.png";
+faces[2] = "images/bardeen.png";
+faces[3] = "images/einstein.png";
+faces[4] = "images/franklin.png";
+faces[5] = "images/feynmann.png";
+faces[6] = "images/cell_phone.png";
+faces[7] = "images/smoke_detector.png";
+faces[8] = "images/transistor.png";
+faces[9] = "images/gps.png";
+faces[10] = "images/dna.png";
+faces[11] = "images/nano.png";
 
 var phys = new Array();
 phys[0] = 0
@@ -101,20 +129,20 @@ phys[2] = 2
 phys[3] = 3
 phys[4] = 4
 phys[5] = 5
-phys[6] = 0
-phys[7] = 1
-phys[8] = 2
-phys[9] = 3
-phys[10] = 4
-phys[11] = 5
+phys[6] = 100
+phys[7] = 101
+phys[8] = 102
+phys[9] = 103
+phys[10] = 104
+phys[11] = 105
 
 var msg = new Array();
-msg[0] = 'Correct! The work of James Clerk Maxwell on electromagnetism opened the way to modern telecommunications'
-msg[1] = 'Correct! Some smoke detectors exploit the emission of alpha-particles by Americium-141 to detect smoke. This was enable by the work of Marie Curie on radioactivity.'
-msg[2] = 'Correct! John Bardeen invented the transistor in 1947.'
-msg[3] = 'Correct! The functioning of GPS device requires taking into account corrections fromt he theeory of general relativity, developed by Albert Einstein. '
-msg[4] = 'Correct! Rosalind Franklin made crucial contributions to the understanding of the structure of DNA'
-msg[5] = 'Correct! Richard Feynmann first illustrated the path towards constructing machines at the nano-metric level'
+msg[0] = 'The work of James Clerk Maxwell on electromagnetism opened the way to modern telecommunications'
+msg[1] = 'Some smoke detectors exploit the emission of alpha-particles by Americium-141 to detect smoke. This was enable by the work of Marie Curie on radioactivity.'
+msg[2] = 'John Bardeen invented the transistor in 1947.'
+msg[3] = 'The functioning of GPS device requires taking into account corrections fromt he theeory of general relativity, developed by Albert Einstein. '
+msg[4] = 'Rosalind Franklin made crucial contributions to the understanding of the structure of DNA'
+msg[5] = 'Richard Feynmann first illustrated the path towards constructing machines at the nano-metric level'
 
 a = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
 
@@ -174,15 +202,22 @@ mouseClicked = function() {
     
     for (var i = 0; i < tiles.length; i++) {
         if (tiles[i].isUnderMouse(mouseX, mouseY)) {
+            if (matchedTiles.includes(tiles[i]) ) {
+              console.log('already found');
+              document.getElementById("p3").innerHTML = msg[tiles[i].name % 100];
+            } 
+
+
 
             if (flippedTiles.length < 2 && tiles[i].isFaceDown) {
             	document.getElementById("p3").innerHTML = ''
                 tiles[i].drawFaceUp();
                 flippedTiles.push(tiles[i]);
                 if (flippedTiles.length === 2) {
+                    tiles[i].moveTo('flipped-right');
                     numTries++;
                     document.getElementById("p1").innerHTML = str1.concat(numTries.toString())
-                    if (flippedTiles[0].name === flippedTiles[1].name) {
+                    if (flippedTiles[0].name % 100  === flippedTiles[1].name % 100) {
                         // success - matching pair
                     	numCorrect++;
                         flippedTiles[0].isMatch = true;
@@ -190,7 +225,7 @@ mouseClicked = function() {
                         matchedTiles.push(flippedTiles[0])
                         matchedTiles.push(flippedTiles[1])
 	                    document.getElementById("p2").innerHTML = str2.concat(numCorrect.toString())
-						document.getElementById("p3").innerHTML = msg[flippedTiles[0].name]
+						document.getElementById("p3").innerHTML = 'Correct! ' + msg[flippedTiles[0].name % 100]
                     } else {
                       // not a matching pair
                         console.log('not matching pair');
@@ -203,6 +238,8 @@ mouseClicked = function() {
                     }
                     console.log('resetting flippedTiles');
                     flippedTiles = [];
+                } else {
+                    tiles[i].moveTo('flipped-left');
                 }
             } 
         }
@@ -221,6 +258,7 @@ mouseClicked = function() {
 //
 window.onload = function() {
   for (var i = 0; i < tiles.length; i++) {
-    tiles[i].drawFaceDown();
+    tiles[i].createInit();
   }
 }
+

@@ -1,0 +1,65 @@
+.card {
+  display: block;
+  width: 80px;
+  height: 100px;
+  background-image: 'hwu.png';
+  background-width: 100%;
+  position: absolute;
+  background-size: cover;
+  left: 0px;
+  top: 0px;
+  border: 2px solid black;
+  border-radius: 4px;
+}
+
+.card.flipped-right ,
+.card.flipped-left ,
+.card:hover {
+  width: 84px;
+  height: 104px;
+  margin-left: -2px;
+  margin-top: -2px;
+  box-shadow: 3px 5px 4px grey;
+}
+
+
+#gameCards {
+  display: block;
+  width: 640px;
+  height: 560px;
+  position: relative;
+}
+
+
+.card {
+      transition: left 1.5s ease-in-out, top 1.5s ease-in-out;
+    }
+
+
+.card.flipped-left {
+  left: 100px !important;
+  top: 346px !important;
+} 
+
+.card.flipped-right {
+  left: 190px !important;
+  top: 346px !important;
+} 
+
+.message {
+  left: 30px;
+  top: 446px;
+  width: 320px;
+  height: 80px;
+  position: absolute;
+  text-align: center;
+}
+
+#droparea {
+  left:100px;
+  top: 346px;
+  width: 160px;
+  height: 100px;
+  position: absolute;
+  border: 1px solid grey;
+}
